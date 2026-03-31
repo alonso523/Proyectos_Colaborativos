@@ -1,0 +1,38 @@
+# Contenedor que contiene las vulnerabilidades, 
+
+# - Contraseña débil (Password123).
+# - Puerto 1433 expuesto al host sin firewall.
+# - Sin red aislada (usa la red bridge por defecto).
+# - Volumen sin cifrado ni permisos especiales.
+# - Imagen oficial sin hardening.
+# - Sin variables de entorno seguras.
+# - Sin auditoría ni roles configurados
+# Ejecutar desde Management Studio 172.23.0.2,1433
+# Contenedor que contiene las vulnerabilidades, 
+
+# - Contraseña débil (Password123).
+# - Puerto 1433 expuesto al host sin firewall.
+# - Sin red aislada (usa la red bridge por defecto).
+# - Volumen sin cifrado ni permisos especiales.
+# - Imagen oficial sin hardening.
+# - Sin variables de entorno seguras.
+# - Sin auditoría ni roles configurados
+# Ejecutar desde Management Studio 172.23.0.2,1433
+version: '3.9'
+
+services:
+  sql_inseguro:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sql_inseguro
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Seguridad2026!
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_inseguro_data:/var/opt/mssql
+    restart: unless-stopped
+
+volumes:
+  sql_inseguro_data:
+    name: sql_inseguro_data
