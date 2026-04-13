@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+  # --- Contenedor Seguro ---
+  sql_seguro:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sql_seguro
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Password_Super_Seguro_2026!! # Cambiamos la del SA
+    networks:
+      - red_segura
+    volumes:
+      - sql_seguro_data:/var/opt/mssql
+      # Automatizamos el backup:
+      - "C:/Administracion de Bases Datos/Cuatrimestre 4/DDA/TiendaMediosDigitales_DW_SA_Proyecto_DDA.bak:/var/opt/mssql/backup/TiendaMediosDigitales_DW_SA_Proyecto_DDA.bak"
+      # Mapeo del script de inicialización
+      - ./script_ataque/init-hardening.sql:/docker-entrypoint-initdb.d/init-hardening.sql
+    restart: unless-stopped
+
+  # --- EL ATACANTE ---
+  atacante_lab_seguro:
+    image: mcr.microsoft.com/powershell:latest
+    container_name: atacante_lab_seguro
+    tty: true
+    stdin_open: true
+    networks:
+      - red_segura
+    volumes:
+      - "C:/Users/alons/Git_Worskpace/Seguridad_Proyecto/sqlserver_seguro/script_ataque:/scripts"
+    working_dir: /scripts
+
+networks:
+  red_segura:
+    driver: bridge
+
+volumes:
+  sql_seguro_data:
+    name: sql_seguro_data

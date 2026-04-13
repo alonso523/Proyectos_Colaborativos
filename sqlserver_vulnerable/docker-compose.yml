@@ -1,37 +1,50 @@
 # Contenedor que contiene las vulnerabilidades, 
 
-# - Contraseña débil (Password123).
+# - Contraseña débil (Seguridad2026!).
 # - Puerto 1433 expuesto al host sin firewall.
 # - Sin red aislada (usa la red bridge por defecto).
 # - Volumen sin cifrado ni permisos especiales.
 # - Imagen oficial sin hardening.
 # - Sin variables de entorno seguras.
 # - Sin auditoría ni roles configurados
-# Ejecutar desde Management Studio 172.23.0.2,1433
-# Contenedor que contiene las vulnerabilidades, 
 
-# - Contraseña débil (Password123).
-# - Puerto 1433 expuesto al host sin firewall.
-# - Sin red aislada (usa la red bridge por defecto).
-# - Volumen sin cifrado ni permisos especiales.
-# - Imagen oficial sin hardening.
-# - Sin variables de entorno seguras.
-# - Sin auditoría ni roles configurados
-# Ejecutar desde Management Studio 172.23.0.2,1433
 version: '3.9'
 
 services:
+  # --- EL OBJETIVO (Vulnerable) ---
   sql_inseguro:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: sql_inseguro
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=Seguridad2026!
+      - SA_PASSWORD=Seguridad2026!      #Contraseña no es lo suficientemente fuerte. El usuario es sa.
+    networks:
+      - red_ataque
     ports:
-      - "1433:1433"
+      - "1433:1433"                     # Puertos son los que vienen por defecto.
     volumes:
-      - sql_inseguro_data:/var/opt/mssql
+      - sql_inseguro_data:/var/opt/mssql    # El Volumen creado no tiene controles
     restart: unless-stopped
+
+  # --- EL ATACANTE (PowerUpSQL) ---
+  atacante_lab:
+    image: mcr.microsoft.com/powershell:latest
+    container_name: atacante_lab
+    tty: true
+    stdin_open: true
+    networks:
+      - red_ataque
+    volumes:
+      # Esto mapea tu carpeta de Windows al contenedor
+      - C:\Users\alons\Git_Worskpace\Seguridad_Proyecto\sqlserver_vulnerable\script_ataque:/scripts
+      # Al entrar al contenedor, aparecerás directamente donde está el exploit
+    working_dir: /scripts
+    depends_on:
+      - sql_inseguro
+
+networks:
+  red_ataque:
+    driver: bridge
 
 volumes:
   sql_inseguro_data:
