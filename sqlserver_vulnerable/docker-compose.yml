@@ -24,6 +24,8 @@ services:
       - "1433:1433"                     # Puertos son los que vienen por defecto.
     volumes:
       - sql_inseguro_data:/var/opt/mssql    # El Volumen creado no tiene controles
+      # Automatizamos el backup:
+      - "C:/Administracion de Bases Datos/Cuatrimestre 4/DDA/TiendaMediosDigitales_DW_SA_Proyecto_DDA.bak:/var/opt/mssql/backup/TiendaMediosDigitales_DW_SA_Proyecto_DDA.bak"
     restart: unless-stopped
 
   # --- EL ATACANTE (PowerUpSQL) ---

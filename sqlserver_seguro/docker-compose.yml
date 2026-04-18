@@ -1,24 +1,33 @@
 version: '3.9'
 
 services:
-  # --- Contenedor Seguro ---
+  # --- Contenedor Seguro (Hardened) ---
   sql_seguro:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: sql_seguro
+    # user: "10001" # Comentado por ahora para evitar problemas de permisos en Windows
+    ports:
+      - "1434:1433"  # Mapeamos el puerto 1434 de tu PC al 1433 del contenedor
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=Password_Super_Seguro_2026!! # Cambiamos la del SA
+      - SA_PASSWORD=Password_Super_Seguro_2026!!
+      - MSSQL_AGENT_ENABLED=true      # Monitoreo: Habilita el agente para auditorías
+      - MSSQL_FORCE_ENCRYPTION=1      # Cifrado: Fuerza TLS en las conexiones
+    dns:
+      - 0.0.0.0                       # Aislamiento: Bloquea resolución de nombres externa
     networks:
       - red_segura
+    deploy:
+      resources:
+        limits:
+          memory: 2G                  # Hardening: Evita ataques de agotamiento de recursos
     volumes:
       - sql_seguro_data:/var/opt/mssql
-      # Automatizamos el backup:
       - "C:/Administracion de Bases Datos/Cuatrimestre 4/DDA/TiendaMediosDigitales_DW_SA_Proyecto_DDA.bak:/var/opt/mssql/backup/TiendaMediosDigitales_DW_SA_Proyecto_DDA.bak"
-      # Mapeo del script de inicialización
       - ./script_ataque/init-hardening.sql:/docker-entrypoint-initdb.d/init-hardening.sql
     restart: unless-stopped
 
-  # --- EL ATACANTE ---
+  # --- EL ATACANTE (Entorno de Pruebas) ---
   atacante_lab_seguro:
     image: mcr.microsoft.com/powershell:latest
     container_name: atacante_lab_seguro
