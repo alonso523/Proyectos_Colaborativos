@@ -60,28 +60,7 @@ try {
     } catch {
         Write-Host "[-] Bloqueado: $($_.Exception.Message)" -ForegroundColor Red
     }
-
-    Write-Host "[+] 6. VERIFICACIÓN DE CIFRADO EN REPOSO (TDE)" -ForegroundColor Cyan
-    $data_tde = New-Object System.Data.DataTable
-    $cmd.CommandText = "SELECT d.name, 
-                        CASE COALESCE(db.encryption_state, 0)
-                            WHEN 3 THEN 'CIFRADO (TDE ACTIVO)' 
-                            ELSE 'VULNERABLE (SIN CIFRAR)' END as Estado 
-                        FROM sys.databases d 
-                        LEFT JOIN sys.dm_database_encryption_keys db ON d.database_id = db.database_id
-                        WHERE d.name NOT IN ('master', 'model', 'msdb', 'tempdb')"
-    $adapter.Fill($data_tde) | Out-Null
-    $data_tde | Format-Table -AutoSize
-
-    # --- NUEVAS ADICIONES PARA EL PROYECTO ---
-
-    Write-Host "[+] 7. HUELLA TÉCNICA (INFORMACIÓN DEL MOTOR)" -ForegroundColor Cyan
-    $data_ver = New-Object System.Data.DataTable
-    $cmd.CommandText = "SELECT @@VERSION as Version_Detallada"
-    $adapter.Fill($data_ver) | Out-Null
-    $data_ver | Format-List | Out-String | Write-Host -ForegroundColor Gray
-
-    Write-Host "[!] 8. PRUEBA DE AISLAMIENTO: INTENTO DE SALIDA A INTERNET" -ForegroundColor Yellow
+        Write-Host "[!] 6. PRUEBA DE AISLAMIENTO: INTENTO DE SALIDA A INTERNET" -ForegroundColor Yellow
     try {
         # Intenta usar el comando curl de Linux a través de xp_cmdshell
         $cmd.CommandText = "EXEC xp_cmdshell 'curl -I --connect-timeout 2 https://www.google.com'"
@@ -97,6 +76,26 @@ try {
     } catch {
         Write-Host "  [OK] Bloqueado: No se puede realizar la prueba de red externa." -ForegroundColor Green
     }
+
+    Write-Host "[+] 7. VERIFICACIÓN DE CIFRADO EN REPOSO (TDE)" -ForegroundColor Cyan
+    $data_tde = New-Object System.Data.DataTable
+    $cmd.CommandText = "SELECT d.name, 
+                        CASE COALESCE(db.encryption_state, 0)
+                            WHEN 3 THEN 'CIFRADO (TDE ACTIVO)' 
+                            ELSE 'VULNERABLE (SIN CIFRAR)' END as Estado 
+                        FROM sys.databases d 
+                        LEFT JOIN sys.dm_database_encryption_keys db ON d.database_id = db.database_id
+                        WHERE d.name NOT IN ('master', 'model', 'msdb', 'tempdb')"
+    $adapter.Fill($data_tde) | Out-Null
+    $data_tde | Format-Table -AutoSize
+
+    # --- NUEVAS ADICIONES PARA EL PROYECTO ---
+
+    Write-Host "[+] 8. HUELLA TÉCNICA (INFORMACIÓN DEL MOTOR)" -ForegroundColor Cyan
+    $data_ver = New-Object System.Data.DataTable
+    $cmd.CommandText = "SELECT @@VERSION as Version_Detallada"
+    $adapter.Fill($data_ver) | Out-Null
+    $data_ver | Format-List | Out-String | Write-Host -ForegroundColor Gray
 
 } catch {
     Write-Error "Error fatal en la conexión: $($_.Exception.Message)"
